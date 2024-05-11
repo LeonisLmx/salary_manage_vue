@@ -1,0 +1,33 @@
+{
+  "name": "vue_emsio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "core-js": "^3.6.4",
+    "echarts": "^4.7.0",
+    "echarts-liquidfill": "^2.0.5",
+    "element-ui": "^2.4.5",
+    "nprogress": "^0.2.0",
+    "vue": "^2.6.11",
+    "vue-print-nb": "^1.7.5",
+    "vue-router": "^3.1.5",
+    "vuex": "^3.1.2"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.2.0",
+    "@vue/cli-plugin-router": "~4.2.0",
+    "@vue/cli-plugin-vuex": "~4.2.0",
+    "@vue/cli-service": "~4.2.0",
+    "axios": "^0.18.0",
+    "babel-plugin-component": "^1.1.1",
+    "less": "^3.11.1",
+    "less-loader": "^5.0.0",
+    "vue-cli-plugin-axios": "~0.0.4",
+    "vue-cli-plugin-element": "~1.0.1",
+    "vue-template-compiler": "^2.6.11"
+  }
+}
