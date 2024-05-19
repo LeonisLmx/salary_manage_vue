@@ -78,6 +78,7 @@ export const putRequest = (url, params) => {
         data: params
     })
 }
+
 export const getRequest = (url, params) => {
     return axios({
         method: 'get',
@@ -85,6 +86,7 @@ export const getRequest = (url, params) => {
         data: params
     })
 }
+
 export const deleteRequest = (url, params) => {
     return axios({
         method: 'delete',

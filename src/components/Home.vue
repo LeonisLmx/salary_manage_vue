@@ -4,33 +4,19 @@
         <el-header style="height: 50px">
 
             <p style="margin-left: 80px;font-weight: 700;font-size: 20px;">薪资管理系统</p>
-            <el-badge  :value="myNotice.length" class="notice">
-            <el-dropdown class="bell">
-                <i class="el-icon-arrow-down el-icon-bell"></i>
-                <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item v-if="myNotice.length===0">
-                        暂无通知
-                    </el-dropdown-item>
-                    <el-dropdown-item v-for="item in myNotice" :key="item.id" @click.native="openNotice(item)">
-                        {{item.substring(0,7)+"......"}}
-                    </el-dropdown-item>
-
-                </el-dropdown-menu>
-            </el-dropdown>
-            </el-badge>
             <el-dropdown class="right">
                 <span class="el-dropdown-link">
                  个人中心<i class="el-icon-arrow-down el-icon--right"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item @click.native="openUserData">个人资料</el-dropdown-item>
-                    <el-dropdown-item>修改密码</el-dropdown-item>
+                    <el-dropdown-item @click.native="openEditPassword">修改密码</el-dropdown-item>
                 </el-dropdown-menu>
             </el-dropdown>
             <div class="avatar">
-                <el-avatar v-if="$store.state.user.userface===null" style="font-size: 18px" size="medium"> {{$store.state.user.name.charAt(0)}}
+                <el-avatar v-if="imageUrl == null" style="font-size: 18px" size="medium"> {{$store.state.user.name.charAt(0)}}
                 </el-avatar>
-                <el-avatar v-else :src="this.$store.state.user.userface" size="medium">
+                <el-avatar v-else :src="imageUrl" size="medium">
                 </el-avatar>
             </div>
             <el-button type="info" size="mini" @click="logout">注销</el-button>
@@ -70,7 +56,6 @@
             </el-aside>
             <!--右侧内容主体-->
             <el-main>
-                <!--                <Welcome ref="Welcome"/>-->
                 <router-view/>
                 <el-dialog
                         title="个人资料"
@@ -110,6 +95,34 @@
                      <el-button type="primary" @click="userDataDialog = false">确 定</el-button>
                     </span>
                 </el-dialog>
+
+
+                <el-dialog
+                        title="修改密码"
+                        :visible.sync="userEditPasswordDialog"
+                        width="30%"
+                >
+                    <el-form style="margin-top:60px">
+                        <el-form :model="userPasswordData" :rules="userPasswordDataRules" label-width="80px">
+                            <el-form-item label="用户名" prop="username">
+                                <el-input v-model="userPasswordData.username" disabled></el-input>
+                            </el-form-item>
+                            <el-form-item label="姓名" prop="name">
+                                <el-input v-model="userPasswordData.name" disabled></el-input>
+                            </el-form-item>
+                            <el-form-item label="密码" prop="password">
+                                <el-input v-model="userPasswordData.password"></el-input>
+                            </el-form-item>
+                            <el-form-item label="密码确认" prop="passwordConfirm">
+                                <el-input v-model="userPasswordData.passwordConfirm" ></el-input>
+                            </el-form-item>
+                        </el-form>
+                    </el-form>
+                    <span slot="footer" class="dialog-footer">
+                     <el-button @click="userDataDialog = false">取 消</el-button>
+                     <el-button type="primary" @click="userDataDialog = false">确 定</el-button>
+                    </span>
+                </el-dialog>
             </el-main>
         </el-container>
     </el-container>
@@ -118,15 +131,18 @@
 
 <script>
     import {Message, MessageBox, Notification} from 'element-ui'
+    import image from '@/assets/avatar.png';
     export default {
         data() {
             return {
                 menuList: [],
+                avatarImgSrc: image,
                 isCollapse: false,
                 infoDialog: false,
                 display: 'none',
                 userDataDialog:false,
                 userData:{},
+                userPasswordData: {},
                 url:'/employee/upload/'+this.$store.state.user.id,
                 userDataRules:{
                     username: [{required: true, message: '请输入用户名', trigger: 'blur'},
@@ -139,25 +155,19 @@
                     email: [{required: true, message: '请输入您的邮箱', trigger: 'blur'},
                         {type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur'}]
                 },
+                userPasswordDataRules: {
+                    password: [{required: true, message: '请输入您的密码', trigger: 'blur'}],
+                    passwordConfirm: [{required: true, message: '请再次输入您的密码', trigger: 'blur'}]
+                },
                 imageUrl: this.$store.state.user.userface,
-                myNotice:this.$websocket.state.notice
+                userEditPasswordDialog: false
             }
         },
         created() {
             this.getMenuList();
-            this.myNotice=this.$websocket.state.notice;
         },
 
         methods: {
-            openNotice(item) {
-                Notification({
-                    title: '提示',
-                    message: item,
-                    type: 'warning',
-                    offset: 100
-
-                });
-            },
             logout() {
                 MessageBox.confirm('是否注销登录?', '提示', {
                     confirmButtonText: '确定',
@@ -169,12 +179,11 @@
                     if (res){
                         window.sessionStorage.clear();
                         await this.$router.push('/login');
-                        this.$websocket.dispatch('websocket_close');
                     }
                 }).catch(() => {
                     Message({
                         type: 'info',
-                        message: '已取消删除'
+                        message: '已取消操作'
                     });
                     return;
                 });
@@ -183,14 +192,16 @@
             async getMenuList() {
                 const res = await this.$http.get('/menuList')
                 this.menuList = res.obj
-                console.log(res)
             },
             //打开用户资料对话框
             openUserData() {
-                this.userDataDialog=true;
-                this.userData=this.$store.state.user;
-                console.log(this.$store.state.user.userface)
-
+                this.userDataDialog = true;
+                this.userData = this.$store.state.user;
+            },
+            openEditPassword() {
+                this.userEditPasswordDialog = true;
+                this.userPasswordData = this.$store.state.user;
+                this.userPasswordData.password = '';
             },
             //点击按钮实现折叠展开
             toggleCollapse() {
@@ -200,7 +211,7 @@
                 if (res){
                     this.imageUrl = res.obj;
                     this.$store.commit('changeUserFace',this.imageUrl);
-                    this.imageUrl=this.$store.state.user.userface;
+                    this.imageUrl = this.$store.state.user.userface;
                     Message.success(res.msg)
                 }
 
@@ -229,31 +240,12 @@
     }
 
     .el-header {
-        /*background-color: #545E6A;*/
         color: #F6F6F6;
         background-color: #0C61B8;
-        /*background-color: #FFFFFF;*/
         display: flex;
         justify-content: space-between;
         padding-left: 0px; //距离左边的距离
         align-items: center;
-        /*color: #fff;*/
-        /*font-size: 20px;*/
-        /*.font {*/
-        /*    position: absolute;*/
-        /*    left: 100px;*/
-        /*}*/
-
-        .bell {
-           margin-right: 5px;
-            margin-bottom: 6px;
-            font-size: 20px;
-            color: #d3dce6;
-        }
-        .notice{
-            margin-top: 10px;
-            margin-right: 170px;
-        }
 
         .el-button {
             position: absolute;
@@ -266,20 +258,10 @@
         }
 
         .avatar {
-            /*height: 40px;*/
-            /*width: 40px;*/
             display: flex;
             align-items: center;
-            /*border: 1px solid #24394E;*/
-            /*border-radius: 50%;*/
             position: absolute;
             left: 10px;
-            /*.avatar-img {*/
-            /*    width: 50px;*/
-            /*    height: 50px;*/
-            /*    border-radius: 50%;*/
-            /*    background-color: #eee;*/
-            /*}*/
         }
 
     }
@@ -294,7 +276,6 @@
 
     .el-main {
         background-color: #DCDFE6;
-        /*background-color: #283647;*/
         color: #303133;
     }
 

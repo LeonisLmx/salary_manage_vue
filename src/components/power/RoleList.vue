@@ -211,7 +211,6 @@
             openEditRole(roleInfo) {
                 this.editRoleDialog = true;
                 this.editRole = roleInfo;
-                // console.log(roleInfo)
             },
             deleteRole(roleId) {
                 MessageBox.confirm('此操作将永久删除角色, 是否继续?', '提示', {

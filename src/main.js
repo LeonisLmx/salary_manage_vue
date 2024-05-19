@@ -3,7 +3,7 @@ import './plugins/axios'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import websocket from "./store/websocket";
+// import websocket from "./store/websocket";
 import './plugins/element.js'
 //导入全局样式表
 import './assets/css/global.css'
@@ -26,17 +26,16 @@ Vue.prototype.postKeyValueRequest = postKeyValueRequest;
 Vue.prototype.putRequest = putRequest;
 Vue.prototype.deleteRequest = deleteRequest;
 Vue.prototype.getRequest = getRequest;
-Vue.prototype.$http=axios;
-Vue.prototype.$websocket=websocket;
+Vue.prototype.$http = axios;
+// Vue.prototype.$websocket=websocket;
 Vue.config.productionTip = false;
 Vue.prototype.$echarts = echarts;
 //通过axios请求拦截器添加token保证，拥有获取数据的权限
 //在request拦截器中展示nprogress
 axios.interceptors.request.use(config=>{
   NProgress.start();
-  // console.log(config)
   //为请求头添加Token验证Authorization字段
-  config.headers.Authorization=window.sessionStorage.getItem("token");
+  config.headers.Authorization = window.sessionStorage.getItem("token");
   //最后必须有
   return config
 })

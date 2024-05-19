@@ -25,6 +25,15 @@
                         {{ exchangeTime(scope.row.nextPayTime)}}
                     </template>
                 </el-table-column>
+                <el-table-column label="操作" width="180px">
+                    <template slot-scope="scope">
+                        <!--修改-->
+                        <el-button type="primary" icon="el-icon-edit" size="mini"
+                                   @click="confirmSendSalary(scope.row)" v-if="scope.row.salaryEnabled == 1">薪资发放</el-button>
+                        <el-button type="danger" size="mini"
+                                   @click="showSalaryzStopmsg"  v-if="scope.row.salaryEnabled == 0">薪资已暂停</el-button>
+                    </template>
+                </el-table-column>
             </el-table>
         </el-card>
     </div>
@@ -42,7 +51,7 @@
                     size: 1000
                 },
                 loading: false,
-                userList: []
+                userList: [],
             }
         },
         created() {
@@ -73,6 +82,24 @@
             //监听添加用户对话框关闭事件
             addDialogClosed() {
                 this.$refs.addFormRef.resetFields();
+            },
+            showSalaryzStopmsg () {
+                Message.error({message: '该用户已被暂停发薪'})
+            },
+            confirmSendSalary (row) {
+                MessageBox.confirm('是否确认为 ' + row.name + ' 发放薪资', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    const res = this.$http.get('/employee/postSalary?userId=' + row.id)
+                }).catch(() => {
+                    Message({
+                        type: 'info',
+                        message: '已取消操作'
+                    });
+                    return;
+                });
             },
             exchangeTime(time) {
                 var date = new Date(time);  // 参数需要毫秒数，所以这里将秒数乘于 1000

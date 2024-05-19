@@ -263,7 +263,6 @@
                 this.$refs.addFormRef.validate(async valid => {
                     if (!valid) return;
                     const res = await this.$http.post('/employee/addUser/', this.addForm);
-                    // console.log(res);
                     if (!res) return;
                     this.dialogVisible = false;
                     this.getUserList();

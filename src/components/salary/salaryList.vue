@@ -9,17 +9,6 @@
 
         <!--卡片视图区域-->
         <el-card>
-            <!--搜索与添加区域-->
-            <el-row :gutter="20">
-                <el-col :span="8">
-                    <el-input placeholder="请输入内容"
-                              v-model="queryInfo.query"
-                              clearable
-                              @clear="getUserList">
-                        <el-button slot="append" icon="el-icon-search" @click="getUserList"></el-button>
-                    </el-input>
-                </el-col>
-            </el-row>
 
             <!--用户列表区域  -->
             <el-table v-loading="loading"
@@ -29,19 +18,30 @@
                 <el-table-column label="#" type="index"></el-table-column>
                 <el-table-column label="姓名" prop="name"></el-table-column>
                 <el-table-column label="用户名" prop="username"></el-table-column>
-                <el-table-column label="进入公司时间" prop="workInCompanyTime">
+                <el-table-column label="进入公司时间" prop="workInCompanyTime" width="150px">
                     <template slot-scope="scope">
                         {{ parseTime(scope.row.workInCompanyTime)}}
                     </template>
                 </el-table-column>
                 <el-table-column label="公司工龄(天)" prop="workInCompanyDays"></el-table-column>
-                <el-table-column label="单日工资" prop="salary"></el-table-column>
-                <el-table-column label="工资发放最短时长" prop="payDuration"></el-table-column>
-                <el-table-column label="操作" width="180px">
+                <el-table-column label="每月薪资" prop="salary"></el-table-column>
+                <el-table-column label="流支付周期" prop="payDuration"></el-table-column>
+                <el-table-column label="流支付单位" prop="payUnit">
+                    <template slot-scope="scope">
+                        {{ parsePayUnit(scope.row.payUnit)}}
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" width="300px">
                     <template slot-scope="scope">
                         <!--修改-->
                         <el-button type="primary" icon="el-icon-edit" size="mini"
-                                   @click="openEditUser(scope.row)"></el-button>
+                                   @click="openEditUser(scope.row)">修改薪资</el-button>
+                        <!--暂停发薪-->
+                        <el-button type="danger" icon="el-icon-edit" size="mini" v-if="scope.row.salaryEnabled"
+                                   @click="editSalaryAction(scope.row,0)">暂停发薪</el-button>
+                        <!--恢复发薪-->
+                        <el-button type="success" icon="el-icon-edit" size="mini" v-if="!scope.row.salaryEnabled"
+                                   @click="editSalaryAction(scope.row,1)">恢复发薪</el-button>
                     </template>
                 </el-table-column>
 
@@ -62,15 +62,25 @@
                     title="修改用户薪资"
                     :visible.sync="editDialogVisible"
                     width="50%">
-                <el-form ref="editUserRef" :model="editUser" :rules="addFormRules" label-width="80px">
+                <el-form ref="editUserRef" :model="editUser" :rules="addFormRules" label-width="100px">
                     <el-form-item label="用户名">
                         <el-input v-model="editUser.username" disabled></el-input>
                     </el-form-item>
-                    <el-form-item label="单日工资" prop="salary">
+                    <el-form-item label="每月薪资" prop="salary">
                         <el-input v-model="editUser.salary"></el-input>
                     </el-form-item>
-                    <el-form-item label="工资天数" prop="payDuration">
+                    <el-form-item label="流支付周期" prop="payDuration">
                         <el-input v-model="editUser.payDuration"></el-input>
+                    </el-form-item>
+                    <el-form-item label="流支付单位" prop="payUnit">
+                        <el-select v-model="editUser.payUnit" placeholder="请选择">
+                            <el-option
+                            v-for="item in options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                            </el-option>
+                        </el-select>
                     </el-form-item>
                 </el-form>
                 <span slot="footer" class="dialog-footer">
@@ -110,6 +120,16 @@
                     username: '',
                     salary: '',
                 },
+                options: [{
+                    value: 'DAYS',
+                    label: '天'
+                }, {
+                    value: 'HOURS',
+                    label: '小时'
+                }, {
+                    value: 'MINUTES',
+                    label: '分钟'
+                }]
             }
         },
         created() {
@@ -166,7 +186,34 @@
             openEditUser(row) {
                 this.editDialogVisible = true
                 this.editUser = row
-            }
+            },
+            editSalaryAction(row, action) {
+                var actionMsg = action == 1?'恢复':'关闭'
+                MessageBox.confirm('是否确认为 ' + row.name + ' ' + actionMsg + ' 薪资发放功能', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(async () => {
+                    this.$http.get('/employee/updateUserPayState?userId=' + row.id + '&action=' + action)
+                }).catch(() => {
+                    Message({
+                        type: 'info',
+                        message: '已取消操作'
+                    });
+                    return;
+                });
+            },
+            parsePayUnit(val) {
+                if (val == 'DAYS') {
+                    return  '天'
+                }
+                if (val == 'HOURS') {
+                    return '小时'
+                }
+                if (val == 'MINUTES') {
+                    return '分钟'
+                }
+            } 
         }
     }
 </script>

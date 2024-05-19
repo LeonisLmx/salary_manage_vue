@@ -33,6 +33,8 @@
                         {{ parseTime(scope.row.holidayEndTime)}}
                     </template>
                 </el-table-column>
+                <el-table-column label="请假持续时长(分)" prop="holidayDurationMinutes">
+                </el-table-column>
                 <el-table-column label="是否审批通过" prop="approval">
                     <template slot-scope="scope">
                         {{ approval(scope.row.approval)}}
@@ -61,10 +63,15 @@
                         range-separator="至"
                         start-placeholder="假期开始日期"
                         end-placeholder="假期结束日期"
+                        format="yyyy-MM-dd HH"
+                        popper-class="tpc"
+                        :default-time="['09:00:00', '17:00:00']"
                         :picker-options="pickerOptions">
                         </el-date-picker>
+                    <br>
+                    <div>上班时间默认为9:00-5:00,每日请假时间应在此区间之内</div>
                 <span slot="footer" class="dialog-footer">
-                <el-button @click="assRoleDialogVisible= false">取 消</el-button>
+                <el-button @click="holidayVisible = false">取 消</el-button>
                 <el-button type="primary" @click="holidayApply">确 定</el-button>
                 </span>
             </el-dialog>
@@ -89,23 +96,15 @@
                 loading: false,
                 holidayVisible: false,
                 dateValue: '',
+                works: [],
+                holidays: [],
                 pickerOptions: {
-                    disabledDate(date) {
-                        // 获取今天的日期
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-
-                        // 将要比较的日期设为今天之后的日期
-                        const compareDate = new Date(date);
-                        compareDate.setHours(0, 0, 0, 0);
-
-                        // 禁用今天之后的日期
-                        return compareDate < today;
-                        }
+                    disabledDate: this.disabledDate
                 }
             }
         },
         created() {
+            this.getHolidayConfigs()
             this.getHolidayList()
         },
         methods: {
@@ -117,6 +116,16 @@
                 if (res) {
                     this.holidayList = res.obj.records;
                     this.total = res.obj.total;
+                }
+                this.loading = false
+            },
+            async getHolidayConfigs() {
+                this.loading = true
+                const res = await this.$http.get('/holiday/getConfigs/', {params: this.queryInfo})
+                if (!res) return;
+                if (res) {
+                    this.works = res.obj.works;
+                    this.holidays = res.obj.holidays;
                 }
                 this.loading = false
             },
@@ -159,6 +168,14 @@
                     Message.error({message: '时间不能为空'})
                     return
                 }
+                if (this.dateValue[0].getHours() < 9 || this.dateValue[0].getHours() > 17){
+                    Message.error({message: '假期开始时间应该9:00~17:00'})
+                    return
+                }
+                if (this.dateValue[1].getHours() < 9 || this.dateValue[1].getHours() > 17){
+                    Message.error({message: '假期结束时间应该9:00~17:00'})
+                    return
+                }
                 var startTime = this.dateValue[0].getTime();
                 var endTime = this.dateValue[1].getTime();
                 var params = {
@@ -170,11 +187,32 @@
                     this.holidayVisible = false
                     this.getHolidayList()
                 }
+            },
+            disabledDate(date) {
+                 // 获取今天的日期
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                // 将要比较的日期设为今天之后的日期
+                const compareDate = new Date(date);
+                compareDate.setHours(0, 0, 0, 0);
+                // 禁用今天之后的日期
+                const dayOfWeek = compareDate.getDay();
+                return compareDate < today 
+                || 
+                ((dayOfWeek == 0 || dayOfWeek == 6) && this.works.indexOf(compareDate.getTime()) == -1)
+                ||
+                (this.holidays.indexOf(compareDate.getTime()) > 0);
             }
         }
     }
 </script>
 
-<style lang="less" scoped>
-
+<style>
+.tpc .el-time-spinner__wrapper {
+  width:100% !important;
+}
+.tpc .el-scrollbar:nth-of-type(2) {
+  display: none !important;
+}
 </style>
+

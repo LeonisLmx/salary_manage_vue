@@ -108,12 +108,10 @@
                         background: 'rgba(0, 0, 0, 0.7)'
                     });
                     const res = await this.postKeyValueRequest('/doLogin', this.loginForm);
-                    // console.log(res);
                     //将登陆成功之后的数据保存在sessionStorage中
                     if (res) {
                         window.sessionStorage.setItem("user", JSON.stringify(res.obj));
                         this.$store.commit('changeState', res.obj);
-                        // this.$websocket.dispatch('websocket_init',"ws://localhost:8181/ws/asset/"+this.$store.state.user.name)
                     } else {
                         setTimeout(() => {
                             loading.close();
@@ -142,9 +140,7 @@
             },
             async smsLogin(){
                 this.$refs.smsLoginRef.validate(async valid => {
-                    console.log(this.smsLoginForm);
                     const res=await  this.postKeyValueRequest('/smsLogin',this.smsLoginForm);
-                    console.log(res)
                     if (res) {
                         window.sessionStorage.setItem("user", JSON.stringify(res.obj));
                         this.$store.commit('changeState', res.obj)

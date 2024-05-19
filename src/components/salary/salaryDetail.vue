@@ -17,7 +17,10 @@
                       stripe>
                 <el-table-column label="#" type="index"></el-table-column>
                 <el-table-column label="员工姓名" prop="name"></el-table-column>
-                <el-table-column label="发放薪资" prop="salary"></el-table-column>
+                <el-table-column label="应发薪资" prop="shouldSalary"></el-table-column>
+                <el-table-column label="实发薪资" prop="actualSalary"></el-table-column>
+                <el-table-column label="应工作时长(分钟)" prop="shouldDuration"></el-table-column>
+                <el-table-column label="实工作时长(分钟)" prop="actualDuration"></el-table-column>
                 <el-table-column label="链上交易哈希" prop="hashId"></el-table-column>
                 <el-table-column label="发放时间" prop="createTime"></el-table-column>
 

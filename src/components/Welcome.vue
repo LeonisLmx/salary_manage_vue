@@ -22,16 +22,6 @@
         </el-tabs>
       </el-col>
     </el-row>
-    <!-- 第二列布局 -->
-    <div>
-      <div class="echarts-style">
-        <span>用户分布状态饼图</span>
-        <div
-          id="orderStateChart"
-          :style="{ float: 'left', width: '100%', height: '400px' }"
-        ></div>
-      </div>
-    </div>
   </div>
 </template>
 

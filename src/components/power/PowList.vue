@@ -217,19 +217,8 @@
                     }
                 }
                 this.parentIdOptions = arr;
-                // console.log(this.parentIdOptions);
             },
             addMenuClose() {
-                // const addMenuClose = {
-                //     name: '',
-                //     pattern: '',
-                //     level: null,
-                //     path: '',
-                //     parentId: null,
-                //     enable: false,
-                //     icon: 'el-icon-menu'
-                // };
-                // this.addMenu = addMenuClose;
                 this.$refs.addMenuRef.resetFields();
             },
             addMenuYes() {
